@@ -26,7 +26,7 @@ const (
 func main() {
     rand.Seed(time.Now().UTC().UnixNano())
 
-    elements := make([]int, 50)
+    elements := make([]int, 200)
 
     for i := range elements {
         elements[i] = i + 1
@@ -38,7 +38,7 @@ func main() {
         elements[i], elements[j] = elements[j], elements[i]
     }
 
-    f, err := os.Create("./QuickSort" + strconv.Itoa(len(elements)) + ".gif")
+    f, err := os.Create("./InsertionSort" + strconv.Itoa(len(elements)) + ".gif")
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -50,7 +50,7 @@ func main() {
 
     w := bufio.NewWriter(f)
 
-    err = makeGIF(w, elements, quickSort)
+    err = makeGIF(w, elements, insertionSort)
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -117,6 +117,14 @@ func bubbleSort(elements []int, swapFunc func(i, j int)) {
         swapFunc(i, j)
 
         i = 0
+    }
+}
+
+func insertionSort(elements []int, swapFunc func(i, j int)) {
+    for i := 1; i < len(elements); i++ {
+        for j, k := i - 1, i; j >= 0 && elements[j] > elements[k]; j, k = j - 1, k - 1 {
+            swapFunc(j, k)
+        }
     }
 }
 
