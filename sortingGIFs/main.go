@@ -26,7 +26,7 @@ const (
 func main() {
     rand.Seed(time.Now().UTC().UnixNano())
 
-    elements := make([]int, 100)
+    elements := make([]int, 50)
 
     for i := range elements {
         elements[i] = i + 1
@@ -38,7 +38,7 @@ func main() {
         elements[i], elements[j] = elements[j], elements[i]
     }
 
-    f, err := os.Create("./BubbleSort" + strconv.Itoa(len(elements)) + ".gif")
+    f, err := os.Create("./QuickSort" + strconv.Itoa(len(elements)) + ".gif")
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -50,7 +50,7 @@ func main() {
 
     w := bufio.NewWriter(f)
 
-    err = makeGIF(w, elements, bubbleSort)
+    err = makeGIF(w, elements, quickSort)
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -117,5 +117,42 @@ func bubbleSort(elements []int, swapFunc func(i, j int)) {
         swapFunc(i, j)
 
         i = 0
+    }
+}
+
+func quickSort(elements []int, swapFunc func(i, j int)) {
+    n := len(elements)
+
+    if n < 2 {
+        return
+    }
+
+    //Determine random pivot:
+    pivotIndex := rand.Intn(n)
+    pivot := elements[pivotIndex]
+
+    //Partition slice:
+    swapFunc(pivotIndex, n - 1) //Pivot is last element while partitioning
+
+    j := -1 //Index of last element of first partition
+
+    for i := 0; i < n - 1; i++ {
+        if (elements[i] <= pivot) {
+            j++
+
+            swapFunc(i, j)
+        }
+    }
+
+    swapFunc(j + 1, n - 1) //Pivot goes between the two partitions
+
+    //Sort paritions:
+    if (j > -1) {
+        quickSort(elements[0:j + 1], swapFunc)
+    }
+    if (j + 2 < n) {
+        quickSort(elements[j + 2:n], func(a, b int) {
+            swapFunc(a + j + 2, b + j + 2) //Indices need to be converted
+        })
     }
 }
