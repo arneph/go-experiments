@@ -26,7 +26,7 @@ const (
 func main() {
     rand.Seed(time.Now().UTC().UnixNano())
 
-    elements := make([]int, 400)
+    elements := make([]int, 50)
 
     for i := range elements {
         elements[i] = i + 1
@@ -38,7 +38,7 @@ func main() {
         elements[i], elements[j] = elements[j], elements[i]
     }
 
-    f, err := os.Create("./SelectionSort" + strconv.Itoa(len(elements)) + ".gif")
+    f, err := os.Create("./OddEvenSort" + strconv.Itoa(len(elements)) + ".gif")
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -50,7 +50,7 @@ func main() {
 
     w := bufio.NewWriter(f)
 
-    err = makeGIF(w, elements, selectionSort)
+    err = makeGIF(w, elements, oddEvenSort)
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -86,7 +86,7 @@ func makeGIF(out io.Writer,
 }
 
 func addGIFFrame(anim *gif.GIF, elements []int, a, b int) {
-    const ew = 1
+    const ew = 5
 
     n := len(elements)
     rect := image.Rect(0, 0, n * ew, n * ew)
@@ -117,6 +117,32 @@ func bubbleSort(elements []int, swapFunc func(i, j int)) {
         swapFunc(i, j)
 
         i = 0
+    }
+}
+
+func oddEvenSort(elements []int, swapFunc func(i, j int)) {
+    sorted := false
+
+    for !sorted {
+        sorted = true
+
+        for i := 1; i < len(elements) - 1; i += 2 {
+            j := i + 1
+
+            if (elements[i] > elements[j]) {
+                swapFunc(i, j);
+                sorted = false
+            }
+        }
+        
+        for i := 0; i < len(elements) - 1; i += 2 {
+            j := i + 1
+
+            if (elements[i] > elements[j]) {
+                swapFunc(i, j);
+                sorted = false
+            }
+        }
     }
 }
 
