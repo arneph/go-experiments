@@ -50,7 +50,7 @@ func main() {
 
     w := bufio.NewWriter(f)
 
-    err = makeGIF(w, elements, bubbleSortStep)
+    err = makeGIF(w, elements, bubbleSort)
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -69,20 +69,16 @@ func printElements(elements []int) {
 
 func makeGIF(out io.Writer,
              elements []int,
-             sortFunc func([]int) (bool, int, int)) error {
+             sortFunc func([]int, func(int, int))) error {
     anim := gif.GIF{}
 
-    addGIFFrame(&anim, elements, -1, -1)
-
-    for {
-        res, i, j := sortFunc(elements)
-
+    sortFunc(elements, func(i, j int) {
         addGIFFrame(&anim, elements, i, j)
 
-        if (res) {
-            break
-        }
-    }
+        elements[i], elements[j] = elements[j], elements[i]
+    })
+
+    addGIFFrame(&anim, elements, -1, -1)
 
     anim.LoopCount = len(anim.Image)
 
@@ -110,18 +106,16 @@ func addGIFFrame(anim *gif.GIF, elements []int, a, b int) {
     anim.Image = append(anim.Image, frame)
 }
 
-func bubbleSortStep(elements []int) (bool, int, int) {
-    for i := 0; i < len(elements) - 1; i++ {
-        j := i + 1
+func bubbleSort(elements []int, swapFunc func(i, j int)) {
+    for i := 1; i < len(elements); i++ {
+        j := i -1
 
-        if (elements[i] <= elements[j]) {
+        if (elements[j] <= elements[i]) {
             continue
         }
 
-        elements[i], elements[j] = elements[j], elements[i]
+        swapFunc(i, j)
 
-        return false, i, j
+        i = 0
     }
-
-    return true, -1, -1
 }
