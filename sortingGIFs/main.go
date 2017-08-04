@@ -1,15 +1,16 @@
 package main
 
 import (
+    "bufio"
     "fmt"
-//    "image"
+    "image"
     "image/color"
-//    "imgage/gif"
-//    "io"
-//    "math"
+    "image/gif"
+    "io"
     "math/rand"
+    "strconv"
     "time"
-//    "os"
+    "os"
 )
 
 var palette = []color.Color{color.Black,
@@ -28,7 +29,7 @@ func main() {
     elements := make([]int, 100)
 
     for i := range elements {
-        elements[i] = i
+        elements[i] = i + 1
     }
 
     for i := range elements {
@@ -37,27 +38,76 @@ func main() {
         elements[i], elements[j] = elements[j], elements[i]
     }
 
-    swaps := 0
+    f, err := os.Create("./BubbleSort" + strconv.Itoa(len(elements)) + ".gif")
 
-    for {
-        res, i, j := bubbleSortStep(elements)
+    if err != nil {
+        fmt.Printf("%v\n", err)
 
-        if (!res) {
-            swaps++
-            fmt.Printf("Swap %03d: %02d with %02d\n", swaps, i, j);
-
-        }else{
-            break
-        }
+        return
     }
-    
-    fmt.Printf("%d swaps\n", swaps);
+
+    defer f.Close()
+
+    w := bufio.NewWriter(f)
+
+    err = makeGIF(w, elements, bubbleSortStep)
+
+    if err != nil {
+        fmt.Printf("%v\n", err)
+
+        return
+    }
+
+    w.Flush()
 }
 
 func printElements(elements []int) {
     for i, v := range elements {
         fmt.Printf("%2d: %2d\n", i, v);
     }
+}
+
+func makeGIF(out io.Writer,
+             elements []int,
+             sortFunc func([]int) (bool, int, int)) error {
+    anim := gif.GIF{}
+
+    addGIFFrame(&anim, elements, -1, -1)
+
+    for {
+        res, i, j := sortFunc(elements)
+
+        addGIFFrame(&anim, elements, i, j)
+
+        if (res) {
+            break
+        }
+    }
+
+    anim.LoopCount = len(anim.Image)
+
+    return gif.EncodeAll(out, &anim)
+}
+
+func addGIFFrame(anim *gif.GIF, elements []int, a, b int) {
+    const ew = 5
+
+    n := len(elements)
+    rect := image.Rect(0, 0, n * ew, n * ew)
+    frame := image.NewPaletted(rect, palette)
+
+    for i, v := range elements {
+        for x, y := 0, 0; x < ew && y < ew * v; x, y = (x + 1) % ew, y + ((x + 1) / ew) {
+            if (i == a || i == b) {
+                frame.SetColorIndex(i * ew + x, n * ew - y, redIndex)
+            }else{
+                frame.SetColorIndex(i * ew + x, n * ew - y, greenIndex)
+            }
+        }
+    }
+
+    anim.Delay = append(anim.Delay, 1)
+    anim.Image = append(anim.Image, frame)
 }
 
 func bubbleSortStep(elements []int) (bool, int, int) {
