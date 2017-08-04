@@ -26,7 +26,7 @@ const (
 func main() {
     rand.Seed(time.Now().UTC().UnixNano())
 
-    elements := make([]int, 200)
+    elements := make([]int, 400)
 
     for i := range elements {
         elements[i] = i + 1
@@ -38,7 +38,7 @@ func main() {
         elements[i], elements[j] = elements[j], elements[i]
     }
 
-    f, err := os.Create("./InsertionSort" + strconv.Itoa(len(elements)) + ".gif")
+    f, err := os.Create("./SelectionSort" + strconv.Itoa(len(elements)) + ".gif")
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -50,7 +50,7 @@ func main() {
 
     w := bufio.NewWriter(f)
 
-    err = makeGIF(w, elements, insertionSort)
+    err = makeGIF(w, elements, selectionSort)
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -86,7 +86,7 @@ func makeGIF(out io.Writer,
 }
 
 func addGIFFrame(anim *gif.GIF, elements []int, a, b int) {
-    const ew = 5
+    const ew = 1
 
     n := len(elements)
     rect := image.Rect(0, 0, n * ew, n * ew)
@@ -125,6 +125,20 @@ func insertionSort(elements []int, swapFunc func(i, j int)) {
         for j, k := i - 1, i; j >= 0 && elements[j] > elements[k]; j, k = j - 1, k - 1 {
             swapFunc(j, k)
         }
+    }
+}
+
+func selectionSort(elements []int, swapFunc func(i, j int)) {
+    for i := 0; i < len(elements); i++ {
+        minIndex := i
+
+        for j := i + 1; j < len(elements); j++ {
+            if elements[j] < elements[minIndex] {
+                minIndex = j
+            }
+        }
+
+        swapFunc(i, minIndex)
     }
 }
 
