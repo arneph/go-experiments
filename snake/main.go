@@ -19,7 +19,7 @@ func init() {
 func main() {
     b := makeBoard()
 
-    f, err := os.Create("./snake/Player 1.gif")
+    f, err := os.Create("./snake/MediocrePlayer.gif")
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -31,7 +31,7 @@ func main() {
 
     w := bufio.NewWriter(f)
 
-    err = makeGIF(w, b, simplePlayer)
+    err = makeGIF(w, b, mediocrePlayer)
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -263,6 +263,83 @@ func simplePlayer(b *Board) {
             b.Direction = Up
         }else{
             b.Direction = Left
+        }
+    }
+}
+
+func mediocrePlayer(b *Board) {
+    //Determine possible directions:
+    p := make(map[BoardDirection]bool, 4)
+
+    p[Left] = true
+    p[Right] = true
+    p[Up] = true
+    p[Down] = true
+
+    //Avoid leaving board:
+    if b.Head.X == 0 {
+        p[Left] = false
+    }else if b.Head.X == BoardW - 1 {
+        p[Right] = false
+    }
+
+    if b.Head.Y == 0 {
+        p[Up] = false
+    }else if b.Head.Y == BoardH - 1 {
+        p[Down] = false
+    }
+
+    //Avoid biting own tail:
+    if p[Left] && b.Fields[b.Head.X - 1][b.Head.Y] != 0 {
+        p[Left] = false
+    }
+    if p[Right] && b.Fields[b.Head.X + 1][b.Head.Y] != 0 {
+        p[Right] = false
+    }
+    if p[Up] && b.Fields[b.Head.X][b.Head.Y - 1] != 0 {
+        p[Up] = false
+    }
+    if p[Down] && b.Fields[b.Head.X][b.Head.Y + 1] != 0 {
+        p[Down] = false
+    }
+
+    //Determine preferred direction:
+    var h, v int
+
+    if b.Head.X < b.Item.X {
+        h = 1
+    }else if b.Head.X == b.Item.X {
+        h = 0
+    }else{
+        h = -1
+    }
+
+    if b.Head.Y < b.Item.Y {
+        v = 1
+    }else if b.Head.Y == b.Item.Y {
+        v = 0
+    }else{
+        v = -1
+    }
+
+    if h == 1 && p[Right] {
+        b.Direction = Right
+
+    }else if h == -1 && p[Left] {
+        b.Direction = Left
+
+    }else if v == 1 && p[Down] {
+        b.Direction = Down
+
+    }else if v == -1 && p[Up] {
+        b.Direction = Up
+
+    }else if p[b.Direction] == false {
+        for d, q := range p {
+            if q {
+                b.Direction = d
+                break
+            }
         }
     }
 }
