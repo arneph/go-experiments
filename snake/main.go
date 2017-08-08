@@ -19,7 +19,7 @@ func init() {
 func main() {
     b := makeBoard()
 
-    f, err := os.Create("./snake/MediocrePlayer.gif")
+    f, err := os.Create("./snake/GoodPlayer.gif")
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -31,7 +31,7 @@ func main() {
 
     w := bufio.NewWriter(f)
 
-    err = makeGIF(w, b, mediocrePlayer)
+    err = makeGIF(w, b, goodPlayer)
 
     if err != nil {
         fmt.Printf("%v\n", err)
@@ -111,7 +111,7 @@ func addGIFFrame(anim *gif.GIF, b *Board) {
 }
 
 const (
-    BoardW = 72
+    BoardW = 24
     BoardH = 24
 )
 
@@ -335,6 +335,135 @@ func mediocrePlayer(b *Board) {
         b.Direction = Up
 
     }else if p[b.Direction] == false {
+        for d, q := range p {
+            if q {
+                b.Direction = d
+                break
+            }
+        }
+    }
+}
+
+func goodPlayer(b *Board) {
+    //Determine possible directions:
+    p := make(map[BoardDirection]bool, 4)
+
+    p[Left] = true
+    p[Right] = true
+    p[Up] = true
+    p[Down] = true
+
+    //Avoid leaving board:
+    if b.Head.X == 0 {
+        p[Left] = false
+    }else if b.Head.X == BoardW - 1 {
+        p[Right] = false
+    }
+
+    if b.Head.Y == 0 {
+        p[Up] = false
+    }else if b.Head.Y == BoardH - 1 {
+        p[Down] = false
+    }
+
+    //Avoid biting own tail:
+    if p[Left] && b.Fields[b.Head.X - 1][b.Head.Y] != 0 {
+        p[Left] = false
+    }
+    if p[Right] && b.Fields[b.Head.X + 1][b.Head.Y] != 0 {
+        p[Right] = false
+    }
+    if p[Up] && b.Fields[b.Head.X][b.Head.Y - 1] != 0 {
+        p[Up] = false
+    }
+    if p[Down] && b.Fields[b.Head.X][b.Head.Y + 1] != 0 {
+        p[Down] = false
+    }
+
+    //Avoid getting trapped:
+    sizeFunc := func(l BoardLocation) (n int) {
+        var queue []BoardLocation
+        seen := make(map[BoardLocation]bool)
+
+        n = 0
+        queue = append(queue, l)
+
+        for len(queue) > 0 {
+            l = queue[0]
+
+            queue = queue[1:]
+
+            if seen[l] {
+                continue
+            }
+
+            seen[l] = true
+
+            if l.X < 0 || l.X >= BoardW ||
+               l.Y < 0 || l.Y >= BoardH {
+                continue
+            }
+
+            if b.Fields[l.X][l.Y] != 0 {
+                continue
+            }
+
+            n++
+            queue = append(queue, BoardLocation{l.X - 1, l.Y},
+                                  BoardLocation{l.X + 1, l.Y},
+                                  BoardLocation{l.X, l.Y - 1},
+                                  BoardLocation{l.X, l.Y + 1})
+        }
+
+        return
+    }
+
+    if p[Left] && sizeFunc(BoardLocation{b.Head.X - 1, b.Head.Y}) < b.Length + 2 {
+        p[Left] = false
+    }
+    if p[Right] && sizeFunc(BoardLocation{b.Head.X + 1, b.Head.Y}) < b.Length + 2 {
+        p[Right] = false
+    }
+    if p[Up] && sizeFunc(BoardLocation{b.Head.X, b.Head.Y - 1}) < b.Length + 2 {
+        p[Up] = false
+    }
+    if p[Down] && sizeFunc(BoardLocation{b.Head.X, b.Head.Y + 1}) < b.Length + 2 {
+        p[Down] = false
+    }
+
+    //Determine preferred direction:
+    var h, v int
+
+    if b.Head.X < b.Item.X {
+        h = 1
+    }else if b.Head.X == b.Item.X {
+        h = 0
+    }else{
+        h = -1
+    }
+
+    if b.Head.Y < b.Item.Y {
+        v = 1
+    }else if b.Head.Y == b.Item.Y {
+        v = 0
+    }else{
+        v = -1
+    }
+
+    //Determine new direction:
+    if h == 1 && p[Right] {
+        b.Direction = Right
+
+    }else if h == -1 && p[Left] {
+        b.Direction = Left
+
+    }else if v == 1 && p[Down] {
+        b.Direction = Down
+
+    }else if v == -1 && p[Up] {
+        b.Direction = Up
+
+    }else{
         for d, q := range p {
             if q {
                 b.Direction = d
