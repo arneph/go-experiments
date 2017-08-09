@@ -33,7 +33,7 @@ func cancelled() bool {
 func init() {
 	var extensionsString string
 
-	flag.StringVar(&extensionsString, "e", ".go,.c,.h,.cpp,.hpp,.java", "allowed file extensions")
+	flag.StringVar(&extensionsString, "e", ".go,.c,.h,.cpp,.hpp,.cs,.vb,.java,.html,.css,.js", "allowed file extensions")
 	flag.BoolVar(&verbose, "v", false, "verbose output")
 	flag.Parse()
 
